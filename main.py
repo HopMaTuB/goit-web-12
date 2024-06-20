@@ -1,16 +1,21 @@
 from fastapi import FastAPI
 from fastapi import FastAPI, Depends, HTTPException
 from sqlalchemy.orm import Session
-from . import contact_crud, models, schemas
+from src.configuration import models
+from src.repository import contact_crud
+from src import schemas
 from src.configuration import database
 from sqlalchemy import select
+from fastapi import status
+from src.routes.users import router as user_router
+
 
 app = FastAPI()
-
+app.include_router(user_router)
 
 @app.post("/contacts/", response_model=schemas.Contact)
 async def create_contact(contact: schemas.ContactCreate, db: Session = Depends(database.get_db)):
-    return await contact_crud.create_contact(db=db, contact=contact)
+    return await contact_crud.create_contact(db=db, contact=contact) and status.HTTP_201_CREATED
 
 @app.get("/contacts/", response_model=list[schemas.Contact])
 async def read_contacts(db: Session = Depends(database.get_db)):

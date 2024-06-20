@@ -1,6 +1,8 @@
 from sqlalchemy.future import select
 from sqlalchemy.orm import Session
-from . import models, schemas
+
+from src.configuration import models
+from src import schemas
 
 async def create_contact(db: Session, contact: schemas.ContactCreate):
     db_contact = models.Contact(**contact.dict())
