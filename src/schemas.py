@@ -23,5 +23,5 @@ class Contact(ContactBase):
         from_attributes = True
 
 class UserModel(BaseModel):
-    username: str
+    email: EmailStr
     password: str

@@ -25,7 +25,7 @@ class Hash:
 
 
 # define a function to generate a new access token
-async def create_access_token(data: dict, expires_delta: Optional[float] = None):
+def create_access_token(data: dict, expires_delta: Optional[float] = None):
     to_encode = data.copy()
     if expires_delta:
         expire = datetime.utcnow() + timedelta(seconds=expires_delta)
