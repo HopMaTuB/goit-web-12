@@ -3,7 +3,7 @@ from src.repository.auth import Hash, create_access_token
 from sqlalchemy.orm import Session
 from fastapi.security import OAuth2PasswordRequestForm
 from src.configuration.models import User
-from typing import Optional,Union
+from typing import Optional,Union,Dict
 
 
 hash_handler = Hash()
@@ -34,13 +34,13 @@ class UserService:
             raise UsernameToken
         
     @staticmethod
-    def create_new_user(body:UserModel, db: Session):
+    def create_new_user(body:UserModel, db: Session) -> Optional[Dict]:
         UserService.check_user_available(username=body.email, db=db)
         new_user = User(username=body.username,email=body.email,password=hash_handler.get_password_hash(body.password))
         db.add(new_user)
         db.commit()
         db.refresh(new_user)
-        return new_user
+        return {"new_user": new_user.email}
     
     @staticmethod
     def check_password(entered_password: str, database_password: str):

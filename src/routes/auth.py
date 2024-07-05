@@ -20,9 +20,9 @@ async def signup(body: UserModel, background_tasks: BackgroundTasks, request: Re
     if exist_user:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Account already exists")
     body.password = auth_service.get_password_hash(body.password)
-    new_user = UserService.create_new_user(body, db)
-    background_tasks.add_task(send_email, new_user.email, request.base_url)
-    return {"user": new_user.email, "detail": "User successfully created"}
+    new_user = UserService.create_new_user(body, db)["new_user"]
+    background_tasks.add_task(send_email, new_user, request.base_url)
+    return {"user": new_user, "detail": "User successfully created"}
 
 
 @router.post("/login", response_model=TokenModel)
