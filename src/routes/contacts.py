@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException,status
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from src.configuration import models, database
 from src.repository import contact_crud

@@ -3,7 +3,8 @@ from src.repository.auth import Hash, create_access_token
 from sqlalchemy.orm import Session
 from fastapi.security import OAuth2PasswordRequestForm
 from src.configuration.models import User
-from typing import Optional
+from typing import Optional,Union
+
 
 hash_handler = Hash()
 
@@ -22,7 +23,8 @@ class UserService:
 
     @staticmethod
     def get_user(username: str, db: Session) -> Optional[User]:
-        return db.query(User).filter(User.email == username).first()
+        user = db.query(User).filter(User.email == username).first()
+        return user
 
 
     @staticmethod
@@ -33,8 +35,8 @@ class UserService:
         
     @staticmethod
     def create_new_user(body:UserModel, db: Session):
-        UserService.check_user_available(username=body.email, db=Session)
-        new_user = User(email=body.email,password=hash_handler.get_password_hash(body.password))
+        UserService.check_user_available(username=body.email, db=db)
+        new_user = User(username=body.username,email=body.email,password=hash_handler.get_password_hash(body.password))
         db.add(new_user)
         db.commit()
         db.refresh(new_user)
@@ -53,7 +55,20 @@ class UserService:
         
         access_token = create_access_token(data={"sub": user.email})
         return access_token
+    
+    @staticmethod
+    def get_user_by_email(email: str, db: Session) -> User:
+        return db.query(User).filter(User.email == email).first()
 
+    @staticmethod
+    def confirmed_email(email: str, db: Session) -> None:
+        user = UserService.get_user_by_email(email, db)
+        user.confirmed = True
+        db.commit()
+
+    def update_token(user: User, token: Union[str, None], db: Session) -> None:
+        user.refresh_token = token
+        db.commit()
         
 
     
