@@ -8,6 +8,7 @@ from datetime import datetime, timedelta
 from sqlalchemy.orm import Session
 from settings import SECRET_KEY,ALGORITHM, oauth2_scheme
 
+
 from src.configuration.database import get_db
 from src.repository import users as repository_users
 
@@ -16,7 +17,7 @@ class Auth:
     pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
     SECRET_KEY = SECRET_KEY
     ALGORITHM = ALGORITHM
-    oauth2_scheme = oauth2_scheme
+    
 
     def verify_password(self, plain_password, hashed_password):
         return self.pwd_context.verify(plain_password, hashed_password)
@@ -95,6 +96,5 @@ class Auth:
           print(e)
           raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
                               detail="Invalid token for email verification")
-
-          
+                
 auth_service = Auth()

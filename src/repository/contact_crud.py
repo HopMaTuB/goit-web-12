@@ -1,6 +1,6 @@
 from sqlalchemy.future import select
 from sqlalchemy.orm import Session
-
+from settings import limiter
 from src.configuration import models
 from src import schemas
 

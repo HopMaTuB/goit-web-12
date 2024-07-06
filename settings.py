@@ -3,6 +3,9 @@ from fastapi_mail import ConnectionConfig
 from pathlib import Path
 from dotenv import load_dotenv
 from fastapi.security import OAuth2PasswordBearer
+from slowapi.util import get_remote_address
+from slowapi import Limiter
+
 
 load_dotenv()
 
@@ -10,7 +13,7 @@ SQLALCHEMY_DATABASE_URL = os.getenv('SQLALCHEMY_DATABASE_URL')
 SECRET_KEY = os.getenv('SECRET_KEY')
 ALGORITHM = os.getenv('ALGORITHM')
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/users/login")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
 
 conf = ConnectionConfig(
     MAIL_USERNAME=os.getenv("MAIL_USERNAME"),
@@ -25,3 +28,9 @@ conf = ConnectionConfig(
     VALIDATE_CERTS=True,
     TEMPLATE_FOLDER=Path(__file__).parent / 'templates',
 )
+
+limiter = Limiter(key_func=get_remote_address)
+
+origins = [ 
+    "*"
+    ]
