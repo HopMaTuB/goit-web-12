@@ -14,15 +14,15 @@ router = APIRouter(prefix='/auth', tags=["auth"])
 security = HTTPBearer()
 
 
-@router.post("/signup", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/signup", response_model=UserResponse,response_model_include={'email','detail'}, status_code=status.HTTP_201_CREATED)
 async def signup(body: UserModel, background_tasks: BackgroundTasks, request: Request, db: Session = Depends(get_db)):
     exist_user = UserService.get_user_by_email(body.email, db)
     if exist_user:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Account already exists")
     body.password = auth_service.get_password_hash(body.password)
-    new_user = UserService.create_new_user(body, db)["new_user"]
-    background_tasks.add_task(send_email, new_user, request.base_url)
-    return {"user": new_user, "detail": "User successfully created"}
+    new_user = UserService.create_new_user(body, db)
+    background_tasks.add_task(send_email, new_user.email,new_user.username, request.base_url)
+    return new_user
 
 
 @router.post("/login", response_model=TokenModel)

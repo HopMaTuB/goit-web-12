@@ -42,7 +42,9 @@ class UserDb(BaseModel):
 
 
 class UserResponse(BaseModel):
-    user: UserDb
+    username: str 
+    email: EmailStr
+    password: str 
     detail: str = "User successfully created"
 
 

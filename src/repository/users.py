@@ -40,7 +40,8 @@ class UserService:
         db.add(new_user)
         db.commit()
         db.refresh(new_user)
-        return {"new_user": new_user.email}
+        return new_user
+
     
     @staticmethod
     def check_password(entered_password: str, database_password: str):
