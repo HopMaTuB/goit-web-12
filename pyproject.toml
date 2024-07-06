@@ -19,6 +19,7 @@ fastapi-jwt-auth = "^0.5.0"
 fastapi-mail = "^1.4.1"
 bcrypt = "4.0.1"
 slowapi = "^0.1.9"
+cloudinary = "^1.40.0"
 
 
 [build-system]

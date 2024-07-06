@@ -28,6 +28,9 @@ class UserModel(BaseModel):
     email: EmailStr
     password: str = Field(min_length=6, max_length=10)
 
+class UserDisplayModel(BaseModel):
+    username: str
+    avatar : str
 
 
 class UserDb(BaseModel):

@@ -4,7 +4,8 @@ from sqlalchemy.orm import Session
 from fastapi.security import OAuth2PasswordRequestForm
 from src.configuration.models import User
 from typing import Optional,Union,Dict
-
+from fastapi import UploadFile
+from src.utils.cloudinary import upload_file_to_cloudinary
 
 hash_handler = Hash()
 
@@ -70,7 +71,21 @@ class UserService:
     def update_token(user: User, token: Union[str, None], db: Session) -> None:
         user.refresh_token = token
         db.commit()
-        
+
+    @staticmethod
+    def save_user(user_to_save: User, db: Session) -> User:
+        db.add(user_to_save)
+        db.commit()
+        db.refresh(user_to_save)
+        return user_to_save
+
+    @staticmethod
+    def update_avatar(user: User, file: UploadFile,db: Session):
+        user.avatar = upload_file_to_cloudinary(file.file, f'user_avatar{user.id}')
+        UserService.save_user(user,db)
+        return user
+
+
 
     
 

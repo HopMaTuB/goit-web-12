@@ -1,14 +1,24 @@
-from fastapi import APIRouter, HTTPException, Depends, status, Security, BackgroundTasks, Request
+from fastapi import (
+    APIRouter, HTTPException, Depends, status, Security, BackgroundTasks, Request,UploadFile, File
+)
 from fastapi.security import OAuth2PasswordRequestForm, HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
 from fastapi_mail import MessageSchema,FastMail,MessageType
 
+from src.configuration.models import User
 from src.configuration.database import get_db
-from src.schemas import UserModel, UserResponse, TokenModel, RequestEmail
+from src.schemas import UserModel, UserResponse, TokenModel, RequestEmail,UserDb,UserDisplayModel
 from src.repository.users import UserService 
 from src.services.auth import auth_service
 from src.services.email import send_email
 from settings import limiter,conf
+
+import cloudinary
+import cloudinary.uploader
+
+from src.repository import users as repository_users
+
+
 
 router = APIRouter(prefix='/auth', tags=["auth"])
 security = HTTPBearer()
@@ -90,3 +100,9 @@ async def send_test_email(request : Request ,email_to_send: str, background_task
     fm = FastMail(conf)
     background_tasks.add_task(fm.send_message, message,template_name='example_template.html')
     return {"message": "email has been sent"}
+
+@router.patch('/avatar', response_model=UserDisplayModel)
+async def update_avatar_user(file: UploadFile = File(), current_user: User = Depends(auth_service.get_current_user),
+                             db: Session = Depends(get_db)):
+    user = UserService.update_avatar(current_user,file,db)
+    return user
