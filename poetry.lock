@@ -77,6 +77,17 @@ test = ["anyio[trio]", "coverage[toml] (>=7)", "exceptiongroup (>=1.2.0)", "hypo
 trio = ["trio (>=0.23)"]
 
 [[package]]
+name = "asynctest"
+version = "0.13.0"
+description = "Enhance the standard unittest package with features for testing asyncio libraries"
+optional = false
+python-versions = ">=3.5"
+files = [
+    {file = "asynctest-0.13.0-py3-none-any.whl", hash = "sha256:5da6118a7e6d6b54d83a8f7197769d046922a44d2a99c21382f0a6e4fadae676"},
+    {file = "asynctest-0.13.0.tar.gz", hash = "sha256:c27862842d15d83e6a34eb0b2866c323880eb3a75e4485b079ea11748fd77fac"},
+]
+
+[[package]]
 name = "babel"
 version = "2.15.0"
 description = "Internationalization utilities"
@@ -2084,4 +2095,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.12"
-content-hash = "5bb25bcd32fb8b9df6a5b14b594c56a4720f21f1907fcddd5d5bf8b3e0548287"
+content-hash = "4ccedf1862b3d38082e75133b7421138025af5bd2f640ed927eb4362b1d449b1"

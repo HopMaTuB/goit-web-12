@@ -1,67 +1,85 @@
+import sys
+import os
+
+# Добавьте корневую директорию вашего проекта в PYTHONPATH
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+import pytest
 import unittest
-from unittest.mock import patch, MagicMock
-from datetime import datetime
-import jwt
-from fastapi import HTTPException
-from src.repository.auth import Hash, create_access_token, get_current_user, SECRET_KEY, ALGORITHM
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
 
+from src import schemas
+from src.repository.contact_crud import create_contact, get_contact, get_contacts, update_contact, delete_contact
 
-class TestHash(unittest.TestCase):
-    def setUp(self):
-        self.hasher = Hash()
-        self.plain_password = "plainpassword"
-        self.hashed_password = self.hasher.get_password_hash(self.plain_password)
+DATABASE_URL = "sqlite+aiosqlite:///test.db"
 
-    def test_verify_password(self):
-        self.assertTrue(self.hasher.verify_password(self.plain_password, self.hashed_password))
-        self.assertFalse(self.hasher.verify_password("wrongpassword", self.hashed_password))
+Base = declarative_base()
 
-    def test_get_password_hash(self):
-        self.assertNotEqual(self.plain_password, self.hashed_password)
-        self.assertTrue(self.hasher.verify_password(self.plain_password, self.hashed_password))
+class TestContactFunctions(unittest.TestCase):
 
-class TestTokenFunctions(unittest.TestCase):
-    @patch('your_module.datetime')
-    @patch('your_module.jwt.encode')
-    def test_create_access_token(self, mock_jwt_encode, mock_datetime):
-        mock_jwt_encode.return_value = "testtoken"
-        mock_datetime.now.return_value = datetime(2023, 1, 1)
+    @pytest.mark.asyncio
+    async def asyncSetUp(self):
+        self.engine = create_async_engine(DATABASE_URL, echo=True)
+        self.async_session = sessionmaker(
+            bind=self.engine,
+            class_=AsyncSession,
+            expire_on_commit=False,
+        )
+        async with self.engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
+        self.session = self.async_session()
 
-        data = {"sub": "test@example.com"}
-        expires_delta = 600
+    @pytest.mark.asyncio
+    async def asyncTearDown(self):
+        await self.session.close()
+        await self.engine.dispose()
+        if os.path.exists("test.db"):
+            os.remove("test.db")
 
-        token = create_access_token(data, expires_delta)
+    @pytest.mark.asyncio
+    async def test_create_contact(self):
+        contact_data = schemas.ContactCreate(name="John Doe", email="john.doe@example.com")
+        new_contact = await create_contact(self.session, contact_data)
+        self.assertEqual(new_contact.name, "John Doe")
+        self.assertEqual(new_contact.email, "john.doe@example.com")
 
-        self.assertEqual(token, "testtoken")
-        mock_jwt_encode.assert_called_once()
-        args, kwargs = mock_jwt_encode.call_args
-        self.assertIn("exp", kwargs['to_encode'])
-        self.assertEqual(kwargs['algorithm'], 'HS256')
+    @pytest.mark.asyncio
+    async def test_get_contact(self):
+        contact_data = schemas.ContactCreate(name="Jane Doe", email="jane.doe@example.com")
+        new_contact = await create_contact(self.session, contact_data)
+        contact = await get_contact(self.session, new_contact.id)
+        self.assertIsNotNone(contact)
+        self.assertEqual(contact.name, "Jane Doe")
+        self.assertEqual(contact.email, "jane.doe@example.com")
 
-    @patch('your_module.jwt.decode')
-    @patch('your_module.get_db')
-    @patch('your_module.oauth2_scheme')
-    def test_get_current_user(self, mock_oauth2_scheme, mock_get_db, mock_jwt_decode):
-        mock_jwt_decode.return_value = {"sub": "test@example.com"}
-        mock_oauth2_scheme.return_value = "testtoken"
-        
-        db_session = MagicMock()
-        mock_get_db.return_value = db_session
+    @pytest.mark.asyncio
+    async def test_get_contacts(self):
+        contact_data1 = schemas.ContactCreate(name="John Doe", email="john.doe@example.com")
+        contact_data2 = schemas.ContactCreate(name="Jane Doe", email="jane.doe@example.com")
+        await create_contact(self.session, contact_data1)
+        await create_contact(self.session, contact_data2)
+        contacts = await get_contacts(self.session)
+        self.assertEqual(len(contacts), 2)
 
-        user = MagicMock()
-        db_session.query().filter().first.return_value = user
+    @pytest.mark.asyncio
+    async def test_update_contact(self):
+        contact_data = schemas.ContactCreate(name="John Doe", email="john.doe@example.com")
+        new_contact = await create_contact(self.session, contact_data)
+        update_data = schemas.ContactUpdate(name="John Smith", email="john.smith@example.com")
+        updated_contact = await update_contact(self.session, new_contact.id, update_data)
+        self.assertEqual(updated_contact.name, "John Smith")
+        self.assertEqual(updated_contact.email, "john.smith@example.com")
 
-        token = "testtoken"
+    @pytest.mark.asyncio
+    async def test_delete_contact(self):
+        contact_data = schemas.ContactCreate(name="Jane Doe", email="jane.doe@example.com")
+        new_contact = await create_contact(self.session, contact_data)
+        deleted_contact = await delete_contact(self.session, new_contact.id)
+        self.assertIsNotNone(deleted_contact)
+        contact = await get_contact(self.session, new_contact.id)
+        self.assertIsNone(contact)
 
-        current_user = get_current_user(token, db=db_session)
-
-        self.assertEqual(current_user, user)
-        mock_jwt_decode.assert_called_once_with(token, SECRET_KEY, algorithms=[ALGORITHM])
-        db_session.query().filter().first.assert_called_once()
-
-        mock_jwt_decode.side_effect = jwt.ExpiredSignatureError
-        with self.assertRaises(HTTPException):
-            get_current_user(token, db=db_session)
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

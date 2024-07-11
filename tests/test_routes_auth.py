@@ -1,8 +1,7 @@
 from unittest.mock import MagicMock
 import pytest
 from src.configuration.models import User
-from io import BytesIO
-from src.schemas import UserDisplayModel
+
 
 def test_create_user(client, user, monkeypatch):
     mock_send_email = MagicMock()
