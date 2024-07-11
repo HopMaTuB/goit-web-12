@@ -8,6 +8,17 @@ from src.services.auth import auth_service
 
 
 async def send_email(email: EmailStr, username: str, host: str):
+    """
+    Send an email for email verification.
+
+    Args:
+        email (EmailStr): The recipient's email address.
+        username (str): The recipient's username.
+        host (str): The host URL for generating the verification link.
+
+    Returns:
+        None
+    """
     try:
         token_verification = auth_service.create_email_token({"sub": email})
         message = MessageSchema(

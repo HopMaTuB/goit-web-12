@@ -12,6 +12,16 @@ cloudinary.config(
 )
 
 def upload_file_to_cloudinary(file, filename):
+    """
+    Upload a file to Cloudinary.
+
+    Args:
+        file (file-like object): The file to be uploaded.
+        filename (str): The desired filename for the uploaded file.
+
+    Returns:
+        str: The URL of the uploaded image.
+    """
     r = cloudinary.uploader.upload(
         file, public_id=f'NotesApp/{filename}', overwrite=True
         )

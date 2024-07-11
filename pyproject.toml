@@ -20,7 +20,11 @@ fastapi-mail = "^1.4.1"
 bcrypt = "4.0.1"
 slowapi = "^0.1.9"
 cloudinary = "^1.40.0"
+sphinx = "^7.3.7"
 
+
+[tool.poetry.group.dev.dependencies]
+sphinx = "^7.3.7"
 
 [build-system]
 requires = ["poetry-core"]

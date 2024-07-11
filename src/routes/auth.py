@@ -27,6 +27,21 @@ security = HTTPBearer()
 @router.post("/signup", response_model=UserResponse,response_model_include={'email','detail'}, status_code=status.HTTP_201_CREATED)
 @limiter.limit('1/minute')
 async def signup(body: UserModel, background_tasks: BackgroundTasks, request: Request, db: Session = Depends(get_db)):
+    """
+    Register a new user.
+
+    Args:
+        body (UserModel): The user data for registration.
+        background_tasks (BackgroundTasks): Background tasks for sending email.
+        request (Request): The request object.
+        db (Session): The database session.
+
+    Returns:
+        UserResponse: The newly created user object.
+
+    Raises:
+        HTTPException: If the user already exists.
+    """
     exist_user = UserService.get_user_by_email(body.email, db)
     if exist_user:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Account already exists")
@@ -39,6 +54,20 @@ async def signup(body: UserModel, background_tasks: BackgroundTasks, request: Re
 @router.post("/login", response_model=TokenModel)
 @limiter.limit('1/minute')
 async def login(request: Request, body: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+    """
+    Authenticate a user and provide JWT tokens.
+
+    Args:
+        request (Request): The request object.
+        body (OAuth2PasswordRequestForm): The login form data.
+        db (Session): The database session.
+
+    Returns:
+        TokenModel: The access and refresh tokens.
+
+    Raises:
+        HTTPException: If the user is not found, email not confirmed, or password is incorrect.
+    """
     user = UserService.get_user_by_email(body.username, db)
     if user is None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid email")
@@ -55,6 +84,19 @@ async def login(request: Request, body: OAuth2PasswordRequestForm = Depends(), d
 
 @router.get('/refresh_token', response_model=TokenModel)
 async def refresh_token(credentials: HTTPAuthorizationCredentials = Security(security), db: Session = Depends(get_db)):
+    """
+    Refresh JWT tokens.
+
+    Args:
+        credentials (HTTPAuthorizationCredentials): The authorization credentials.
+        db (Session): The database session.
+
+    Returns:
+        TokenModel: The new access and refresh tokens.
+
+    Raises:
+        HTTPException: If the refresh token is invalid.
+    """
     token = credentials.credentials
     email = auth_service.decode_refresh_token(token)
     user = UserService.get_user_by_email(email, db)
@@ -69,6 +111,19 @@ async def refresh_token(credentials: HTTPAuthorizationCredentials = Security(sec
 
 @router.get('/confirmed_email/{token}')
 async def confirmed_email(token: str, db: Session = Depends(get_db)):
+    """
+    Confirm user's email.
+
+    Args:
+        token (str): The confirmation token.
+        db (Session): The database session.
+
+    Returns:
+        Dict: A message indicating email confirmation status.
+
+    Raises:
+        HTTPException: If the verification fails.
+    """
     email = await auth_service.get_email_from_token(token)
     user = UserService.get_user_by_email(email, db)
     if user is None:
@@ -82,6 +137,18 @@ async def confirmed_email(token: str, db: Session = Depends(get_db)):
 @router.post('/request_email')
 async def request_email(body: RequestEmail, background_tasks: BackgroundTasks, request: Request,
                         db: Session = Depends(get_db)):
+    """
+    Request email confirmation.
+
+    Args:
+        body (RequestEmail): The email request data.
+        background_tasks (BackgroundTasks): Background tasks for sending email.
+        request (Request): The request object.
+        db (Session): The database session.
+
+    Returns:
+        Dict: A message indicating email confirmation status.
+    """
     user = UserService.get_user_by_email(body.email, db)
 
     if user.confirmed:
@@ -91,6 +158,17 @@ async def request_email(body: RequestEmail, background_tasks: BackgroundTasks, r
 @router.post("/send_test_email")
 @limiter.limit('1/minute')
 async def send_test_email(request : Request ,email_to_send: str, background_tasks: BackgroundTasks):
+    """
+    Send a test email.
+
+    Args:
+        request (Request): The request object.
+        email_to_send (str): The email address to send the test email to.
+        background_tasks (BackgroundTasks): Background tasks for sending email.
+
+    Returns:
+        Dict: A message indicating the email has been sent.
+    """
     message = MessageSchema(
         subject="Fastapi mail module",
         recipients=[email_to_send],
@@ -104,5 +182,16 @@ async def send_test_email(request : Request ,email_to_send: str, background_task
 @router.patch('/avatar', response_model=UserDisplayModel)
 async def update_avatar_user(file: UploadFile = File(), current_user: User = Depends(auth_service.get_current_user),
                              db: Session = Depends(get_db)):
+    """
+    Update the user's avatar.
+
+    Args:
+        file (UploadFile): The uploaded file object.
+        current_user (User): The current authenticated user.
+        db (Session): The database session.
+
+    Returns:
+        UserDisplayModel: The updated user object with the new avatar.
+    """
     user = UserService.update_avatar(current_user,file,db)
     return user

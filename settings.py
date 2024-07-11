@@ -10,6 +10,7 @@ from slowapi import Limiter
 load_dotenv()
 
 SQLALCHEMY_DATABASE_URL = os.getenv('SQLALCHEMY_DATABASE_URL')
+SQLALCHEMY_TEST_DATABASE_URL = os.getenv('SQLALCHEMY_TEST_DATABASE_URL')
 SECRET_KEY = os.getenv('SECRET_KEY')
 ALGORITHM = os.getenv('ALGORITHM')
 
