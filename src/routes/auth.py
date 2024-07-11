@@ -7,16 +7,11 @@ from fastapi_mail import MessageSchema,FastMail,MessageType
 
 from src.configuration.models import User
 from src.configuration.database import get_db
-from src.schemas import UserModel, UserResponse, TokenModel, RequestEmail,UserDb,UserDisplayModel
+from src.schemas import UserModel, UserResponse, TokenModel, RequestEmail,UserDisplayModel
 from src.repository.users import UserService 
 from src.services.auth import auth_service
 from src.services.email import send_email
 from settings import limiter,conf
-
-import cloudinary
-import cloudinary.uploader
-
-from src.repository import users as repository_users
 
 
 
@@ -25,7 +20,7 @@ security = HTTPBearer()
 
 
 @router.post("/signup", response_model=UserResponse,response_model_include={'email','detail'}, status_code=status.HTTP_201_CREATED)
-@limiter.limit('1/minute')
+# @limiter.limit('1/minute')
 async def signup(body: UserModel, background_tasks: BackgroundTasks, request: Request, db: Session = Depends(get_db)):
     """
     Register a new user.
@@ -52,7 +47,7 @@ async def signup(body: UserModel, background_tasks: BackgroundTasks, request: Re
 
 
 @router.post("/login", response_model=TokenModel)
-@limiter.limit('1/minute')
+# @limiter.limit('1/minute')
 async def login(request: Request, body: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     """
     Authenticate a user and provide JWT tokens.
@@ -156,7 +151,7 @@ async def request_email(body: RequestEmail, background_tasks: BackgroundTasks, r
     
 
 @router.post("/send_test_email")
-@limiter.limit('1/minute')
+# @limiter.limit('1/minute')
 async def send_test_email(request : Request ,email_to_send: str, background_tasks: BackgroundTasks):
     """
     Send a test email.

@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from settings import limiter,origins
+import uvicorn
 
 
 
@@ -26,5 +27,4 @@ app.include_router(contact_router, prefix='/api')
 
 
 if __name__ == '__main__':
-    import uvicorn
     uvicorn.run(app, host='127.0.0.1', port=8000)
